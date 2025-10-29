@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 디지털 윤리 메모리 게임</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2e7d32;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #558b2f;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .game-info {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            color: #1b5e20;
+        }
+        
+        .score {
+            font-weight: bold;
+            color: #f57c00;
+        }
+        
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .card {
+            aspect-ratio: 2/3;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            min-height: 120px;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .card.matched {
+            cursor: default;
+            pointer-events: none;
+        }
+        
+        .card.matched:hover {
+            transform: none;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+        
+        .card.matched .card-front {
+            border: 4px solid #ffa726;
+            box-shadow: 0 0 15px rgba(255, 167, 38, 0.5);
+        }
+        
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+        }
+        
+        .card-back {
+            background: linear-gradient(135deg, #66bb6a 0%, #81c784 100%);
+            color: white;
+            font-size: 2em;
+        }
+        
+        .card-front {
+            background: white;
+            transform: rotateY(180deg);
+            border: 3px solid #66bb6a;
+        }
+        
+        .card-icon {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+        
+        .card-title {
+            font-size: 0.75em;
+            font-weight: bold;
+            color: #2e7d32;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        
+        .card-description {
+            font-size: 0.6em;
+            color: #424242;
+            text-align: center;
+            line-height: 1.3;
+        }
+        
+        .controls {
+            text-align: center;
+        }
+        
+        .btn {
+            background: #66bb6a;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .btn:hover {
+            background: #4caf50;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+        }
+        
+        .modal-content h2 {
+            color: #2e7d32;
+            margin-bottom: 20px;
+        }
+        
+        .modal-content p {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            color: #424242;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 AI 디지털 윤리 메모리 게임 🎮</h1>
+        <p class="subtitle">같은 AI 기술을 찾아보세요!</p>
+        
+        <div class="game-info">
+            <span>매칭 성공: <span class="score" id="matches">0</span> / 9</span>
+            <span style="margin-left: 30px;">시도 횟수: <span class="score" id="attempts">0</span></span>
+        </div>
+        
+        <div class="game-board" id="gameBoard"></div>
+        
+        <div class="controls">
+            <button class="btn" onclick="resetGame()">🔄 다시 시작</button>
+        </div>
+    </div>
+    
+    <div class="modal" id="winModal">
+        <div class="modal-content">
+            <h2>🎉 축하합니다! 🎉</h2>
+            <p>모든 카드를 맞추셨습니다!<br><span id="finalAttempts"></span>번 만에 성공!</p>
+            <button class="btn" onclick="resetGame()">다시 도전하기</button>
+        </div>
+    </div>
+
+    <script>
+        const cards = [
+            { id: 1, type: 'image', icon: '🏠', title: '스마트 냉장고', description: '' },
+            { id: 1, type: 'text', icon: '', title: '스마트 냉장고', description: '스스로 온도를 조절하고 음료기한을 알려주어 사람들에게 도움을 줄 수 있어요.' },
+            
+            { id: 2, type: 'image', icon: '🚗', title: '자율주행 자동차', description: '' },
+            { id: 2, type: 'text', icon: '', title: '자율주행 자동차', description: '스스로 길을 찾아 안전하게 운전해서 사람들에게 도움을 줄 수 있어요.' },
+            
+            { id: 3, type: 'image', icon: '🚜', title: '로봇청소기', description: '' },
+            { id: 3, type: 'text', icon: '', title: '로봇청소기', description: '스스로 구석구석 집을 청소해서 사람들에게 도움을 줄 수 있어요.' },
+            
+            { id: 4, type: 'image', icon: '🔊', title: '인공지능 스피커', description: '' },
+            { id: 4, type: 'text', icon: '', title: '인공지능 스피커', description: '우리가 하는 말을 스스로 이해하고 대답해서 사람들에게 도움을 줄 수 있어요.' },
+            
+            { id: 5, type: 'image', icon: '🖥️', title: '인공지능 서빗 로봇', description: '' },
+            { id: 5, type: 'text', icon: '', title: '인공지능 서빗 로봇', description: '스스로 손님이 있는 곳으로 음식을 배달해서 사람들에게 도움을 줄 수 있어요.' },
+            
+            { id: 6, type: 'image', icon: '🎬', title: '영상 추천 서비스', description: '' },
+            { id: 6, type: 'text', icon: '', title: '영상 추천 서비스', description: '스스로 주인이 보고 싶어 할 영상을 알아내서 추천하여서 사람들에게 도움을 줄 수 있어요.' },
+            
+            { id: 7, type: 'image', icon: '⏰', title: '알람 시계', description: '' },
+            { id: 7, type: 'text', icon: '', title: '알람 시계', description: '기계이지만 인공지능처럼 스스로 생각해서 행동을 할 수 없어요. 인공지능이 아니에요.' },
+            
+            { id: 8, type: 'image', icon: '🐱', title: '똑똑한 고양이', description: '' },
+            { id: 8, type: 'text', icon: '', title: '똑똑한 고양이', description: '주인이 없어도 혼자 움직일 수 있어요. 살아있는 동물이에요. 인공지능이 아니에요.' },
+            
+            { id: 9, type: 'image', icon: '🎮', title: '단순한 비디오 게임', description: '' },
+            { id: 9, type: 'text', icon: '', title: '단순한 비디오 게임', description: '게임은 컴퓨터 프로그램이에요. 하지만 인공지능처럼 스스로 생각할 수 없어요. 인공지능이 아니에요.' }
+        ];
+
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let attempts = 0;
+        let canFlip = true;
+
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        function createCard(cardData, index) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.dataset.id = cardData.id;
+            card.dataset.index = index;
+            
+            card.innerHTML = `
+                <div class="card-face card-back">🧩</div>
+                <div class="card-face card-front">
+                    ${cardData.icon ? `<div class="card-icon">${cardData.icon}</div>` : ''}
+                    <div class="card-title">${cardData.title}</div>
+                    ${cardData.description ? `<div class="card-description">${cardData.description}</div>` : ''}
+                </div>
+            `;
+            
+            card.addEventListener('click', () => flipCard(card, cardData));
+            return card;
+        }
+
+        function flipCard(card, cardData) {
+            if (!canFlip || card.classList.contains('flipped') || card.classList.contains('matched')) {
+                return;
+            }
+
+            card.classList.add('flipped');
+            flippedCards.push({ card, data: cardData });
+
+            if (flippedCards.length === 2) {
+                canFlip = false;
+                attempts++;
+                document.getElementById('attempts').textContent = attempts;
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            const [first, second] = flippedCards;
+            
+            if (first.data.id === second.data.id) {
+                setTimeout(() => {
+                    first.card.classList.add('matched');
+                    second.card.classList.add('matched');
+                    matchedPairs++;
+                    document.getElementById('matches').textContent = matchedPairs;
+                    flippedCards = [];
+                    canFlip = true;
+                    
+                    if (matchedPairs === 9) {
+                        setTimeout(showWinModal, 500);
+                    }
+                }, 500);
+            } else {
+                setTimeout(() => {
+                    first.card.classList.remove('flipped');
+                    second.card.classList.remove('flipped');
+                    flippedCards = [];
+                    canFlip = true;
+                }, 1000);
+            }
+        }
+
+        function showWinModal() {
+            canFlip = false;
+            setTimeout(() => {
+                document.getElementById('finalAttempts').textContent = attempts;
+                document.getElementById('winModal').classList.add('active');
+            }, 1000);
+        }
+
+        function resetGame() {
+            document.getElementById('winModal').classList.remove('active');
+            matchedPairs = 0;
+            attempts = 0;
+            flippedCards = [];
+            canFlip = true;
+            document.getElementById('matches').textContent = 0;
+            document.getElementById('attempts').textContent = 0;
+            initGame();
+        }
+
+        function initGame() {
+            const gameBoard = document.getElementById('gameBoard');
+            gameBoard.innerHTML = '';
+            
+            const shuffledCards = shuffleArray(cards);
+            shuffledCards.forEach((cardData, index) => {
+                const card = createCard(cardData, index);
+                gameBoard.appendChild(card);
+            });
+        }
+
+        initGame();
+    </script>
+</body>
+</html>
