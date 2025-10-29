@@ -8,4 +8,4 @@ markdown# AI 디지털 윤리 메모리 게임 🤖
 3. 9쌍을 모두 맞추면 성공!
 
 ## 게임 플레이
-[여기서 게임하기](https://사용자명.github.io/ai-memory-game/)
+[여기서 게임하기](https://damgiweb-glitch.github.io/ai-memory-game/)
